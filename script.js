@@ -1,4 +1,3 @@
-// Question Data
 const questions = [
     { id: 1, text: "Apa kepanjangan HTML?", type: "text", answer: "Hypertext Markup Language", points: 5 },
     { id: 2, text: "Tag HTML untuk menambahkan gambar adalah?", type: "multiple", options: ["<img>", "<image>", "<picture>", "<src>"], answer: "<img>", points: 5 },
@@ -11,21 +10,20 @@ let currentQuestionIndex = 0;
 let score = 0;
 let timerInterval;
 
-// player form
+function showSection(sectionId) {
+    document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+    document.getElementById(sectionId).classList.remove('hidden');
+}
+
 function showPlayerForm() {
-    document.getElementById("home").classList.add("hidden");
-    document.getElementById("playerForm").classList.remove("hidden");
+    showSection("playerForm");
 }
 
 function startQuiz() {
     const name = document.getElementById("name").value;
     const nim = document.getElementById("nim").value;
     if (name && nim) {
-        document.getElementById("playerForm").classList.add("hidden");
-        document.getElementById("quiz").classList.remove("hidden");
-        
-        document.getElementById("totalQuestions").textContent = questions.length;
-
+        showSection("quiz");
         loadQuestion();
     } else {
         alert("Please enter both name and NIM.");
@@ -35,12 +33,9 @@ function startQuiz() {
 function loadQuestion() {
     const question = questions[currentQuestionIndex];
     document.getElementById("questionText").textContent = question.text;
-
-    const optionsContainer = document.getElementById("answerOptions");
-    optionsContainer.innerHTML = "";
-
-    // Update current question number
     document.getElementById("currentQuestion").textContent = currentQuestionIndex + 1;
+    document.getElementById("totalQuestions").textContent = questions.length;
+    document.getElementById("answerOptions").innerHTML = "";
 
     if (question.type === "multiple") {
         question.options.forEach(option => {
@@ -48,32 +43,29 @@ function loadQuestion() {
             btn.className = "answer-option";
             btn.textContent = option;
             btn.onclick = () => selectAnswer(option);
-            optionsContainer.appendChild(btn);
+            document.getElementById("answerOptions").appendChild(btn);
         });
     } else if (question.type === "text") {
         const input = document.createElement("input");
         input.type = "text";
         input.id = "textAnswer";
-        optionsContainer.appendChild(input);
+        document.getElementById("answerOptions").appendChild(input);
         const submitBtn = document.createElement("button");
         submitBtn.textContent = "Submit";
         submitBtn.onclick = () => selectAnswer(input.value);
-        optionsContainer.appendChild(submitBtn);
+        document.getElementById("answerOptions").appendChild(submitBtn);
     }
 
-    // Update progress bar
     updateProgress();
     startTimer();
 }
 
 function updateProgress() {
     const progressElement = document.getElementById("progress");
-
     const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
     progressElement.style.width = progressPercent + "%";
 }
 
-// Start Timer
 function startTimer() {
     let timeLeft = 30;
     document.getElementById("timer").textContent = `Waktu tersisa: ${timeLeft} detik`;
@@ -82,49 +74,43 @@ function startTimer() {
         document.getElementById("timer").textContent = `Waktu tersisa: ${timeLeft} detik`;
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            nextQuestion(); 
+            nextQuestion();
         }
     }, 1000);
 }
 
-function updateLiveScore() {
-    document.getElementById("scoreDisplay").textContent = score;
-}
-
 function selectAnswer(selectedAnswer) {
+    clearInterval(timerInterval);
+
     const question = questions[currentQuestionIndex];
     if (selectedAnswer.trim().toLowerCase() === question.answer.toLowerCase()) {
         score += question.points;
-        updateLiveScore();
     }
+    document.getElementById("score").textContent = score;
     nextQuestion();
 }
 
-// Next Question
 function nextQuestion() {
-    clearInterval(timerInterval);
     currentQuestionIndex++;
     if (currentQuestionIndex < questions.length) {
         loadQuestion();
     } else {
-        showResults();
+        showResult();
     }
 }
 
-// Show Results
-function showResults() {
-    document.getElementById("quiz").classList.add("hidden");
-    document.getElementById("result").classList.remove("hidden");
-
+function showResult() {
     document.getElementById("resultName").textContent = document.getElementById("name").value;
     document.getElementById("resultNim").textContent = document.getElementById("nim").value;
     document.getElementById("totalScore").textContent = score;
+    showSection("result");
 }
 
-// Restart Quiz
 function restartQuiz() {
     currentQuestionIndex = 0;
     score = 0;
-    document.getElementById("result").classList.add("hidden");
-    document.getElementById("home").classList.remove("hidden");
+    document.getElementById("name").value = "";
+    document.getElementById("nim").value = "";
+    document.getElementById("score").textContent = score;
+    showSection("home");
 }
